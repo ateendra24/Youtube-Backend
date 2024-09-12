@@ -1,4 +1,4 @@
-# BigBackend
+# Youtube Backend
 
 A backend for a YouTube-like website. This project is built using Node.js, Express, MongoDB, and Mongoose, featuring user authentication, video uploads, playlist management, and more.
 
@@ -31,13 +31,13 @@ To run this project locally, follow these steps:
 1. Clone the repository:
 
     ```bash
-    git clone https://github.com/ateendra24/bigbackend.git
+    git clone https://github.com/ateendra24/Youtube-Backend/.git
     ```
 
 2. Navigate to the project directory:
 
     ```bash
-    cd bigbackend
+    cd Youtube-Backend
     ```
 
 3. Install dependencies:
