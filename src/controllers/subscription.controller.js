@@ -7,31 +7,36 @@ import { asyncHandler } from "../utils/asyncHandler.js"
 
 
 const toggleSubscription = asyncHandler(async (req, res) => {
-    const { channelId } = req.params
+
+    const { channelId } = req.params;
     if (!channelId) {
-        throw new ApiError(400, "Channel Id is required")
+        throw new ApiError(400, "Channel Id is required");
     }
 
-    const SubscriptionExist = await Subscription.findOne({
+    const subscriptionExist = await Subscription.findOne({
         subscriber: req.user._id,
         channel: channelId
-    })
-    if (SubscriptionExist) {
-        await Subscription.findOneAndDelete({
-            subscriber: req.user._id,
-        })
-    }
-    else {
+    });
+
+    if (subscriptionExist) {
+        await Subscription.findOneAndDelete({ subscriber: req.user._id });
+
+        const totalSubscribers = await Subscription.countDocuments({ channel: channelId });
+        req.io.emit("subscriberCountUpdated", { channelId, totalSubscribers });
+    } else {
         await Subscription.create({
             subscriber: req.user._id,
             channel: channelId
-        })
+        });
+
+        const totalSubscribers = await Subscription.countDocuments({ channel: channelId });
+        req.io.emit("subscriberCountUpdated", { channelId, totalSubscribers });
     }
 
-    return res
-        .status(200)
-        .json(new ApiResponse(200, "Subscription toggled successfully"))
-})
+    return res.status(200).json(new ApiResponse(200, "Subscription toggled successfully"));
+});
+
+
 
 // controller to return subscriber list of a channel
 const getUserChannelSubscribers = asyncHandler(async (req, res) => {
@@ -43,7 +48,7 @@ const getUserChannelSubscribers = asyncHandler(async (req, res) => {
     const subscribers = await Subscription.find({
         channel: userid
     })
-    .populate("subscriber", "fullname")
+        .populate("subscriber", "fullname")
 
 
     return res
@@ -54,16 +59,12 @@ const getUserChannelSubscribers = asyncHandler(async (req, res) => {
 
 // controller to return channel list to which user has subscribed
 const getSubscribedChannels = asyncHandler(async (req, res) => {
-    const { userid } = req.params
-    if (!userid) {
-        throw new ApiError(400, "User Id is required")
-    }
 
     const channels = await Subscription.find({
-        subscriber: userid
+        subscriber: req.user._id
     })
-    .populate("channel", "fullname")
-    if(!channels){
+        .populate("channel", "fullname avatar username")
+    if (!channels) {
         throw new ApiError(404, "No subscribed channels found")
     }
 
