@@ -7,23 +7,30 @@ import {ApiResponse} from "../utils/ApiResponse.js"
 import {asyncHandler} from "../utils/asyncHandler.js"
 
 const getChannelStats = asyncHandler(async (req, res) => {
-    // TODO: Get the channel stats like total video views, total subscribers, total videos, total likes etc.
-    const videos = await Video.find({owner: req.user._id})
-    const totalVideos = videos.length
-    let totalViews = 0
-    let totalLikes = 0
-    for(const video of videos){
-        totalViews += video.views
-        const likes = await Like.find({video: video._id})
-        totalLikes += likes.length
+    const {userId} = req.user._id
+    let Tviews=0
+
+    const data= {
+        totalVideos: 0,
+        totalLikes: 0,
+        totalViews: 0,
+        totalSubscribers: 0
     }
-    const subscribers = await Subscription.find({channel: req.user._id})
-    const totalSubscribers = subscribers.length
+    data.totalSubscribers= await Subscription.countDocuments({channel: req.user._id})
+    data.totalVideos= await Video.countDocuments({owner: req.user._id})
+    data.totalLikes= await Like.countDocuments({likedBy: req.user._id})
+    const allViews= await Video.find({owner: req.user._id})
+    for(let i in allViews){
+        Tviews+= allViews[i].views
+    }   
+
+    data.totalViews= Tviews
+
     return res
     .status(200)
-    .json(new ApiResponse(200, {totalVideos, totalViews, totalLikes, totalSubscribers}, "Channel stats fetched successfully"))
-    
-})
+    .json(new ApiResponse(200, data, "Channel stats fetched successfully"))
+
+});
 
 const getChannelVideos = asyncHandler(async (req, res) => {
     const { page = 1, limit = 10 } = req.query;

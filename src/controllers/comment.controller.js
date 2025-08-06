@@ -1,4 +1,3 @@
-import mongoose from "mongoose"
 import {Comment} from "../models/comment.model.js"
 import {ApiError} from "../utils/ApiError.js"
 import {ApiResponse} from "../utils/ApiResponse.js"
@@ -6,7 +5,7 @@ import {asyncHandler} from "../utils/asyncHandler.js"
 
 const getVideoComments = asyncHandler(async (req, res) => {
     const { videoId } = req.params;
-    const { page = 1, limit = 10 } = req.query;
+    const { page = 1, limit = 12 } = req.query;
 
     if (!videoId) {
         throw new ApiError(400, "Please provide video id");
@@ -14,7 +13,7 @@ const getVideoComments = asyncHandler(async (req, res) => {
 
     // Find comments and populate the owner field with the corresponding username from the User model
     const comments = await Comment.find({ video: videoId })
-        .populate('owner', 'username') // Populates the owner field with the username
+        .populate('owner', 'username avatar') // Populates the owner field with the username
         .sort({ createdAt: -1 })
         .skip((page - 1) * limit)
         .limit(Number(limit));
